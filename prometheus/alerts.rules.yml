@@ -1,0 +1,53 @@
+groups:
+  - name: node-exporter-alerts
+    rules:
+
+      # High CPU Usage
+      - alert: HighCPUUsage
+        expr: (100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High CPU Usage"
+          description: "CPU usage on {{ $labels.instance }} is above 80%."
+
+      # High Memory Usage
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Memory Usage"
+          description: "Memory usage on {{ $labels.instance }} is above 85%."
+      # High Disk Usage
+      - alert: HighDiskUsage
+        expr: expr: (100 - ((node_filesystem_avail_bytes{mountpoint="/",fstype!~"tmpfs|overlay"} * 100) / node_filesystem_size_bytes{mountpoint="/",fstype!~"tmpfs|overr
+lay"})) > 90
+        for: 10s
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Disk Usage"
+          description: "Disk usage on {{ $labels.instance }} is above 90%."
+
+      # Node Exporter Down
+      - alert: NodeExporterDown
+        expr: up{job="linuxos"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Exporter Down"
+          description: "Node Exporter is not reachable on {{ $labels.instance }}."
+
+      # Host Down
+      - alert: HostDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Host Down"
+          description: "Target {{ $labels.instance }} is down."
